@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="DanielStout.AsciiTableFormatter" Version="1.1.0" />
     <PackageReference Include="DSharpPlus" Version="4.0.0-nightly-00769" />
     <PackageReference Include="DSharpPlus.CommandsNext" Version="4.0.0-nightly-00769" />
     <PackageReference Include="DSharpPlus.Interactivity" Version="4.0.0-nightly-00769" />

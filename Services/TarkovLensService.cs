@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using TarkovLensBot.Enums;
 using TarkovLensBot.Interfaces;
 using TarkovLensBot.Models.Items;
 
@@ -30,6 +32,24 @@ namespace TarkovLensBot.Services
 
             string json = await response.Content.ReadAsStringAsync();
             var items = JsonSerializer.Deserialize<List<BaseItem>>(json);
+
+            return items;
+        }
+
+        /// <summary>
+        /// Get a list of all ammunitions.
+        /// </summary>
+        /// <param name="nameOfItem">OPTIONAL: search for ammunitions by name</param>
+        /// <returns>A list of Ammunition objects.</returns>
+        public async Task<List<Ammunition>> GetAmmunitions(string nameOfItem = null)
+        {
+            var response = await httpClient.GetAsync($"item/kind/{KindOfItem.Ammunition}?name={nameOfItem}");
+            response.EnsureSuccessStatusCode();
+
+            string json = await response.Content.ReadAsStringAsync();
+            
+            JsonSerializerOptions options = new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } };
+            var items = JsonSerializer.Deserialize<List<Ammunition>>(json, options);
 
             return items;
         }
