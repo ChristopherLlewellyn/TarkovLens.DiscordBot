@@ -1,5 +1,6 @@
 ﻿using DSharpPlus;
 using DSharpPlus.CommandsNext;
+using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using System;
 using System.Threading.Tasks;
@@ -30,7 +31,7 @@ namespace TarkovLensBot
                 StringPrefixes = new string[] { config.Prefix },
                 EnableMentionPrefix = true,
                 EnableDms = false,
-                DmHelp = true,
+                DmHelp = false,
                 Services = services
             };
 
@@ -38,7 +39,8 @@ namespace TarkovLensBot
 
             Commands.RegisterCommands<ItemCommands>();
 
-            Client.ConnectAsync();
+            var activity = new DiscordActivity("!help", ActivityType.Playing);
+            Client.ConnectAsync(activity);
         }
 
         private Task OnClientReady(DiscordClient sender, ReadyEventArgs e)

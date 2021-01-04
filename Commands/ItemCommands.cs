@@ -125,8 +125,8 @@ namespace TarkovLensBot.Commands
 
             var msgEmbed = new DiscordEmbedBuilder
             {
-                Title = $"Stats for {ammo.ShortName}",
-                Color = DiscordColor.Purple
+                Title = $"Stats for {ammo.Name}",
+                Color = DiscordColor.Teal
             };
 
             msgEmbed.AddField("Damage", ammo.Damage.ToString());
