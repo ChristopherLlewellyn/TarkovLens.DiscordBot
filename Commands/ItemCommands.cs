@@ -25,12 +25,12 @@ namespace TarkovLensBot.Commands
 
         [Command("price")]
         [Description("Gets the market price of an item")]
-        public async Task GetItemPrice(CommandContext ctx, [Description("The name of the item to find, e.g. salewa.")] params string[] input)
+        public async Task GetItemPrice(CommandContext ctx, [Description("The name of the item to find, e.g. salewa.")] params string[] name)
         {
-            var name = input.ToStringWithSpaces();
+            var nameString = name.ToStringWithSpaces();
 
-            var items = await _tarkovLensService.GetItemsBySearch(name).ConfigureAwait(false);
-            var item = items.Where(x => x.Name.ToLower().Contains(name.ToLower())).FirstOrDefault();
+            var items = await _tarkovLensService.GetItemsBySearch(nameString).ConfigureAwait(false);
+            var item = items.Where(x => x.Name.ToLower().Contains(nameString.ToLower())).FirstOrDefault();
 
             if (item.IsNull())
                 item = items.FirstOrDefault();
@@ -44,7 +44,7 @@ namespace TarkovLensBot.Commands
                     Color = DiscordColor.Orange
                 };
 
-                msgEmbed.AddField("Market Price", $"{item.LastLowestMarketPrice} ₽");
+                msgEmbed.AddField("Market Price", $"{item.Avg24hPrice} ₽");
 
                 await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
                 return;
@@ -54,7 +54,7 @@ namespace TarkovLensBot.Commands
                 var errEmbed = new DiscordEmbedBuilder
                 {
                     Title = "Item not found",
-                    Description = name,
+                    Description = nameString,
                     Color = DiscordColor.Red
                 };
 
@@ -64,7 +64,7 @@ namespace TarkovLensBot.Commands
         }
 
         [Command("compare")]
-        [Description("Compare two different ammunitions")]
+        [Description("Compare two different ammunition types")]
         public async Task CompareAmmo(
             CommandContext ctx,
             [Description("The name of the first ammo to compare, e.g. m995")] string ammo1Name,
@@ -110,20 +110,20 @@ namespace TarkovLensBot.Commands
         }
 
         [Command("ammo")]
-        [Description("Get information about an ammunition")]
+        [Description("Get information about an ammunition type")]
         public async Task GetAmmoInfo(
             CommandContext ctx, 
-            [Description("Optional: The caliber of the ammo (useful if there are many types of ammunition with the same name)")] string caliber = null,
-            [Description("The name of the ammo")] params string[] input)
+            [Description("The caliber of the ammo")] string caliber = null,
+            [Description("The name of the ammo")] params string[] name)
         {
-            var name = input.ToStringWithSpaces();
-            List<Ammunition> ammunitions = await _tarkovLensService.GetAmmunitions(nameOfItem: name, caliber: caliber);
+            var nameString = name.ToStringWithSpaces();
+            List<Ammunition> ammunitions = await _tarkovLensService.GetAmmunitions(nameOfItem: nameString, caliber: caliber);
             Ammunition ammo = null;
 
             // Some filtering to more accurately choose the ammo that the user searched for
             foreach (var a in ammunitions)
             {
-                if (a.Name.ContainsWord(name))
+                if (a.Name.ContainsWord(nameString))
                 {
                     ammo = a;
                     break;
@@ -140,7 +140,7 @@ namespace TarkovLensBot.Commands
                 var errEmbed = new DiscordEmbedBuilder
                 {
                     Title = "Item not found",
-                    Description = name,
+                    Description = nameString,
                     Color = DiscordColor.Red
                 };
 
@@ -167,16 +167,17 @@ namespace TarkovLensBot.Commands
 
         [Command("caliber")]
         [Description("Get information about a caliber")]
-        public async Task GetCaliberInfo(CommandContext ctx, [Description("The name of the caliber")] string caliberInput)
+        public async Task GetCaliberInfo(CommandContext ctx, [Description("The name of the caliber")] params string[] caliber)
         {
-            List<Ammunition> ammunitions = await _tarkovLensService.GetAmmunitions(caliber: caliberInput);
+            string caliberString = caliber.ToStringWithSpaces();
+            List<Ammunition> ammunitions = await _tarkovLensService.GetAmmunitions(caliber: caliberString);
 
             #region Precise filtering
             // Some filtering to more accurately choose the ammo that the user searched for
             var ammunitionsFiltered = new List<Ammunition>();
             foreach (var ammo in ammunitions)
             {
-                if (ammo.Caliber.ContainsWord(caliberInput))
+                if (ammo.Caliber.ContainsWord(caliberString))
                 {
                     ammunitionsFiltered.Add(ammo);
                 }
@@ -193,7 +194,7 @@ namespace TarkovLensBot.Commands
                 var errEmbed = new DiscordEmbedBuilder
                 {
                     Title = "No ammunition found for this caliber",
-                    Description = caliberInput,
+                    Description = caliberString,
                     Color = DiscordColor.Red
                 };
 
