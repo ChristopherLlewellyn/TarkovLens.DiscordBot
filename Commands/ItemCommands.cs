@@ -7,6 +7,7 @@ using AsciiTableFormatter;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using TarkovLensBot.Helpers.ExtensionMethods;
 using TarkovLensBot.Models.CommandResponses;
 using TarkovLensBot.Models.Items;
 using TarkovLensBot.Services;
@@ -24,10 +25,15 @@ namespace TarkovLensBot.Commands
 
         [Command("price")]
         [Description("Gets the market price of an item")]
-        public async Task GetItemPrice(CommandContext ctx, [Description("The name of the item to find, e.g. salewa.")] string name)
+        public async Task GetItemPrice(CommandContext ctx, [Description("The name of the item to find, e.g. salewa.")] params string[] input)
         {
+            var name = input.ToStringWithSpaces();
+
             var items = await _tarkovLensService.GetItemsBySearch(name).ConfigureAwait(false);
-            var item = items.FirstOrDefault();
+            var item = items.Where(x => x.Name.ToLower().Contains(name.ToLower())).FirstOrDefault();
+
+            if (item.IsNull())
+                item = items.FirstOrDefault();
 
             if (item != null)
             {
@@ -59,7 +65,7 @@ namespace TarkovLensBot.Commands
 
         [Command("compare")]
         [Description("Compare two different ammunitions")]
-        public async Task GetAmmoInfo(
+        public async Task CompareAmmo(
             CommandContext ctx,
             [Description("The name of the first ammo to compare, e.g. m995")] string ammo1Name,
             [Description("The name of the second ammo to compare, e.g. BT")] string ammo2Name
@@ -100,17 +106,36 @@ namespace TarkovLensBot.Commands
 
             await ctx.Channel.SendMessageAsync("**Resize Discord if the table does not display properly**").ConfigureAwait(false);
             await ctx.Channel.SendMessageAsync(output).ConfigureAwait(false);
+            return;
         }
 
         [Command("ammo")]
         [Description("Get information about an ammunition")]
-        public async Task GetAmmoInfo(CommandContext ctx, [Description("The name of the ammo")] string name)
+        public async Task GetAmmoInfo(
+            CommandContext ctx, 
+            [Description("Optional: The caliber of the ammo (useful if there are many types of ammunition with the same name)")] string caliber = null,
+            [Description("The name of the ammo")] params string[] input)
         {
-            List<Ammunition> ammunitions = await _tarkovLensService.GetAmmunitions(name);
+            var name = input.ToStringWithSpaces();
+            List<Ammunition> ammunitions = await _tarkovLensService.GetAmmunitions(nameOfItem: name, caliber: caliber);
+            Ammunition ammo = null;
 
-            var ammo = ammunitions.FirstOrDefault();
+            // Some filtering to more accurately choose the ammo that the user searched for
+            foreach (var a in ammunitions)
+            {
+                if (a.Name.ContainsWord(name))
+                {
+                    ammo = a;
+                    break;
+                }
+            }
 
-            if (ammo == null)
+            // If there is no direct word match, use the first item that the API returned
+            if (ammo.IsNull())
+                ammo = ammunitions.FirstOrDefault();
+
+            // If still no ammo, return "not found" message
+            if (ammo.IsNull())
             {
                 var errEmbed = new DiscordEmbedBuilder
                 {
@@ -125,7 +150,7 @@ namespace TarkovLensBot.Commands
 
             var msgEmbed = new DiscordEmbedBuilder
             {
-                Title = $"Stats for {ammo.Name}",
+                Title = $"{ammo.Name}",
                 Color = DiscordColor.Teal
             };
 
@@ -137,6 +162,61 @@ namespace TarkovLensBot.Commands
             msgEmbed.AddField("Caliber", ammo.Caliber.ToString());
 
             await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+            return;
+        }
+
+        [Command("caliber")]
+        [Description("Get information about a caliber")]
+        public async Task GetCaliberInfo(CommandContext ctx, [Description("The name of the caliber")] string caliberInput)
+        {
+            List<Ammunition> ammunitions = await _tarkovLensService.GetAmmunitions(caliber: caliberInput);
+
+            #region Precise filtering
+            // Some filtering to more accurately choose the ammo that the user searched for
+            var ammunitionsFiltered = new List<Ammunition>();
+            foreach (var ammo in ammunitions)
+            {
+                if (ammo.Caliber.ContainsWord(caliberInput))
+                {
+                    ammunitionsFiltered.Add(ammo);
+                }
+            }
+
+            if (ammunitionsFiltered.IsNotNullOrEmpty())
+            {
+                ammunitions = ammunitionsFiltered;
+            }
+
+            // If still no ammo, return "not found" message
+            if (ammunitions.IsNullOrEmpty())
+            {
+                var errEmbed = new DiscordEmbedBuilder
+                {
+                    Title = "No ammunition found for this caliber",
+                    Description = caliberInput,
+                    Color = DiscordColor.Red
+                };
+
+                await ctx.Channel.SendMessageAsync(embed: errEmbed).ConfigureAwait(false);
+                return;
+            }
+            #endregion
+
+            #region Create display table
+            var comparisonList = new List<CaliberComparisonItem>();
+
+            foreach (var ammo in ammunitions)
+            {
+                comparisonList.Add(new CaliberComparisonItem(ammo.ShortName, ammo.Caliber, ammo.Damage, ammo.Penetration, ammo.ArmorDamage, ammo.Velocity, ammo.Tracer));
+            }
+            comparisonList = comparisonList.OrderBy(x => x.Name).ToList();
+
+            string output = Formatter.Format(comparisonList);
+            output = "```" + output + "```";
+            #endregion
+
+            await ctx.Channel.SendMessageAsync("**Resize Discord if the table does not display properly**").ConfigureAwait(false);
+            await ctx.Channel.SendMessageAsync(output).ConfigureAwait(false);
             return;
         }
     }

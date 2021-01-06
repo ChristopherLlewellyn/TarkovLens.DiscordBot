@@ -40,10 +40,11 @@ namespace TarkovLensBot.Services
         /// Get a list of all ammunitions.
         /// </summary>
         /// <param name="nameOfItem">OPTIONAL: search for ammunitions by name</param>
+        /// /// <param name="caliber">OPTIONAL: search for ammunitions by caliber</param>
         /// <returns>A list of Ammunition objects.</returns>
-        public async Task<List<Ammunition>> GetAmmunitions(string nameOfItem = null)
+        public async Task<List<Ammunition>> GetAmmunitions(string nameOfItem = null, string caliber = null)
         {
-            var response = await httpClient.GetAsync($"item/kind/{KindOfItem.Ammunition}?name={nameOfItem}");
+            var response = await httpClient.GetAsync($"item/kind/{KindOfItem.Ammunition}?name={nameOfItem}&caliber={caliber}");
             response.EnsureSuccessStatusCode();
 
             string json = await response.Content.ReadAsStringAsync();
