@@ -16,7 +16,7 @@ namespace TarkovLensBot
                 .SetBasePath(Directory.GetCurrentDirectory())
 
                 // Optional, as we can just use env variables (as we do with Docker)
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
 
                 .AddEnvironmentVariables();
 
