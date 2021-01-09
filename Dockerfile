@@ -15,5 +15,9 @@ FROM mcr.microsoft.com/dotnet/core/aspnet:3.1
 WORKDIR /app
 COPY --from=build-env /app/out .
 
-COPY appsettings.json ./
+# The line below is only necessary if we want to configure settings using
+# an appsettings.json file (e.g. for convenience in a development environment).
+# Otherwise, the project assumes we are using environment variables
+# COPY appsettings.json ./
+
 ENTRYPOINT ["dotnet", "TarkovLensBot.dll"]
