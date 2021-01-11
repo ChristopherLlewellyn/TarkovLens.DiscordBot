@@ -18,6 +18,7 @@ namespace TarkovLensBot
                 // Optional, as we can just use env variables (as we do with Docker)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
 
+                .AddUserSecrets<Program>()
                 .AddEnvironmentVariables();
 
             Configuration = builder.Build();

@@ -117,6 +117,12 @@ namespace TarkovLensBot.Commands
             [Description("The name of the ammo")] params string[] name)
         {
             var nameString = name.ToStringWithSpaces();
+            if (nameString.IsNullOrEmpty()) // If name is empty, then they only entered one parameter. So the caliber IS the name.
+            {
+                nameString = caliber;
+                caliber = null;
+            }
+
             List<Ammunition> ammunitions = await _tarkovLensService.GetAmmunitions(nameOfItem: nameString, caliber: caliber);
             Ammunition ammo = null;
 
@@ -151,6 +157,7 @@ namespace TarkovLensBot.Commands
             var msgEmbed = new DiscordEmbedBuilder
             {
                 Title = $"{ammo.Name}",
+                ImageUrl = ammo.Img,
                 Color = DiscordColor.Teal
             };
 
