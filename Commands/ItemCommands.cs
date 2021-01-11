@@ -95,8 +95,8 @@ namespace TarkovLensBot.Commands
 
             var comparisonList = new List<AmmoComparisonItem>();
 
-            var ammo1Details = new AmmoComparisonItem(ammo1.ShortName, ammo1.Caliber, ammo1.Damage, ammo1.Penetration, ammo1.ArmorDamage, ammo1.Velocity, ammo1.Tracer);
-            var ammo2Details = new AmmoComparisonItem(ammo2.ShortName, ammo2.Caliber, ammo2.Damage, ammo2.Penetration, ammo2.ArmorDamage, ammo2.Velocity, ammo2.Tracer);
+            var ammo1Details = new AmmoComparisonItem(ammo1.ShortName, ammo1.Caliber, ammo1.Damage, ammo1.Penetration, ammo1.ArmorDamage, ammo1.Velocity, ammo1.Tracer, ammo1.Avg24hPrice);
+            var ammo2Details = new AmmoComparisonItem(ammo2.ShortName, ammo2.Caliber, ammo2.Damage, ammo2.Penetration, ammo2.ArmorDamage, ammo2.Velocity, ammo2.Tracer, ammo2.Avg24hPrice);
 
             comparisonList.Add(ammo1Details);
             comparisonList.Add(ammo2Details);
@@ -167,6 +167,7 @@ namespace TarkovLensBot.Commands
             msgEmbed.AddField("Velocity", ammo.Velocity.ToString());
             msgEmbed.AddField("Tracer?", ammo.Tracer == true ? "Yes" : "No");
             msgEmbed.AddField("Caliber", ammo.Caliber.ToString());
+            msgEmbed.AddField("Market Price", $"{ammo.Avg24hPrice.ToString()} ₽");
 
             await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
             return;
@@ -215,7 +216,7 @@ namespace TarkovLensBot.Commands
 
             foreach (var ammo in ammunitions)
             {
-                comparisonList.Add(new CaliberComparisonItem(ammo.ShortName, ammo.Caliber, ammo.Damage, ammo.Penetration, ammo.ArmorDamage, ammo.Velocity, ammo.Tracer));
+                comparisonList.Add(new CaliberComparisonItem(ammo.ShortName, ammo.Caliber, ammo.Damage, ammo.Penetration, ammo.ArmorDamage, ammo.Velocity, ammo.Tracer, ammo.Avg24hPrice));
             }
             comparisonList = comparisonList.OrderBy(x => x.Name).ToList();
 
@@ -261,6 +262,10 @@ namespace TarkovLensBot.Commands
             msgEmbed.AddField("Max Durability", armor.ArmorProperties.Durability.ToString());
             msgEmbed.AddField("Protects", armor.ArmorProperties.Zones.Join(", "));
             msgEmbed.AddField("Material", armor.ArmorProperties.Material.Name.ToString());
+            msgEmbed.AddField("Movement Speed", $"{armor.Penalties.Speed.ToString()}%");
+            msgEmbed.AddField("Ergonomics", $"{armor.Penalties.Ergonomics.ToString()}%");
+            msgEmbed.AddField("Turn Speed", $"{armor.Penalties.Mouse.ToString()}%");
+            msgEmbed.AddField("Market Price", $"{armor.Avg24hPrice.ToString()} ₽");
 
             await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
             return;

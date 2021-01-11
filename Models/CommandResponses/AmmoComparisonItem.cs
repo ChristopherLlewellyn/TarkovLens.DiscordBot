@@ -14,8 +14,9 @@ namespace TarkovLensBot.Models.CommandResponses
         public string ArmorDamage { get; set; }
         public string Velocity { get; set; }
         public string Tracer { get; set; }
+        public string MarketPrice { get; set; }
 
-        public AmmoComparisonItem(string name, string caliber, float damage, float penetration, float armorDamage, float velocity, bool tracer)
+        public AmmoComparisonItem(string name, string caliber, float damage, float penetration, float armorDamage, float velocity, bool tracer, int marketPrice)
         {
             Name = name;
             Damage = damage.ToString();
@@ -24,6 +25,7 @@ namespace TarkovLensBot.Models.CommandResponses
             Velocity = $"{velocity.ToString()} m/s";
             Tracer = tracer == true ? "Yes" : "No";
             Caliber = caliber;
+            MarketPrice = $"{marketPrice.ToString()} ₽";
         }
     }
 }
