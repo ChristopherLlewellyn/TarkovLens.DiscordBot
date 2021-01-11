@@ -227,5 +227,43 @@ namespace TarkovLensBot.Commands
             await ctx.Channel.SendMessageAsync(output).ConfigureAwait(false);
             return;
         }
+
+        [Command("armor")]
+        [Description("Get information about an armor")]
+        public async Task GetArmorInfo(CommandContext ctx, [Description("The name of the armor")] params string[] name)
+        {
+            string nameString = name.ToStringWithSpaces().ToLower();
+            List<Armor> armors = await _tarkovLensService.GetItemsByKind<Armor>(Enums.KindOfItem.Armor);
+
+            var armor = armors.Where(x => x.Name.ToLower().Contains(nameString)).FirstOrDefault();
+
+            if (armor.IsNull())
+            {
+                var errEmbed = new DiscordEmbedBuilder
+                {
+                    Title = "Armor not found",
+                    Description = nameString,
+                    Color = DiscordColor.Red
+                };
+
+                await ctx.Channel.SendMessageAsync(embed: errEmbed).ConfigureAwait(false);
+                return;
+            }
+
+            var msgEmbed = new DiscordEmbedBuilder
+            {
+                Title = $"{armor.Name}",
+                ImageUrl = armor.Img,
+                Color = DiscordColor.Teal
+            };
+
+            msgEmbed.AddField("Class", armor.ArmorProperties.Class.ToString());
+            msgEmbed.AddField("Max Durability", armor.ArmorProperties.Durability.ToString());
+            msgEmbed.AddField("Protects", armor.ArmorProperties.Zones.Join(", "));
+            msgEmbed.AddField("Material", armor.ArmorProperties.Material.Name.ToString());
+
+            await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+            return;
+        }
     }
 }

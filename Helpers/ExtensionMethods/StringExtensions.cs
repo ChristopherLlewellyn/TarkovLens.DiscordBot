@@ -27,6 +27,12 @@ namespace TarkovLensBot.Helpers.ExtensionMethods
             return str;
         }
 
+        public static string ToTitleCase(this string str)
+        {
+            var cultureInfo = System.Threading.Thread.CurrentThread.CurrentCulture;
+            return cultureInfo.TextInfo.ToTitleCase(str.ToLower());
+        }
+
         public static bool ContainsWord(this string s, string word)
         {
             string[] ar = s.Split(' ');
@@ -37,6 +43,11 @@ namespace TarkovLensBot.Helpers.ExtensionMethods
                     return true;
             }
             return false;
+        }
+
+        public static string Join(this IEnumerable<string> source, string separator)
+        {
+            return string.Join(separator, source);
         }
     }
 }

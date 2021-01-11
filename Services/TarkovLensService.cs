@@ -54,5 +54,18 @@ namespace TarkovLensBot.Services
 
             return items;
         }
+
+        public async Task<List<T>> GetItemsByKind<T>(KindOfItem kind, string nameOfItem = null) where T : IItem
+        {
+            var response = await httpClient.GetAsync($"item/kind/{kind}?name={nameOfItem}");
+            response.EnsureSuccessStatusCode();
+
+            string json = await response.Content.ReadAsStringAsync();
+
+            JsonSerializerOptions options = new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } };
+            var items = JsonSerializer.Deserialize<List<T>>(json, options);
+
+            return items;
+        }
     }
 }
