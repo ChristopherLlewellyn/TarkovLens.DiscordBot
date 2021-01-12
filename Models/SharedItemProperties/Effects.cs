@@ -44,6 +44,9 @@ namespace TarkovLensBot.Models.Items
 
         [JsonPropertyName("destroyedPart")]
         public EffectsDetails DestroyedPart { get; set; }
+
+        [JsonPropertyName("tremor")]
+        public EffectsDetails Tremor { get; set; }
     }
 
     public class EffectsDetails

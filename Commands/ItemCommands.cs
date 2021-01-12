@@ -156,7 +156,7 @@ namespace TarkovLensBot.Commands
 
             var msgEmbed = new DiscordEmbedBuilder
             {
-                Title = $"{ammo.Name}",
+                Title = ammo.Name,
                 ImageUrl = ammo.Img,
                 Color = DiscordColor.Teal
             };
@@ -253,7 +253,7 @@ namespace TarkovLensBot.Commands
 
             var msgEmbed = new DiscordEmbedBuilder
             {
-                Title = $"{armor.Name}",
+                Title = armor.Name,
                 ImageUrl = armor.Img,
                 Color = DiscordColor.Teal
             };
@@ -262,10 +262,114 @@ namespace TarkovLensBot.Commands
             msgEmbed.AddField("Max Durability", armor.ArmorProperties.Durability.ToString());
             msgEmbed.AddField("Protects", armor.ArmorProperties.Zones.Join(", "));
             msgEmbed.AddField("Material", armor.ArmorProperties.Material.Name.ToString());
+            msgEmbed.AddField("Weight", $"{armor.Weight.ToString()} kg");
             msgEmbed.AddField("Movement Speed", $"{armor.Penalties.Speed.ToString()}%");
             msgEmbed.AddField("Ergonomics", $"{armor.Penalties.Ergonomics.ToString()}%");
             msgEmbed.AddField("Turn Speed", $"{armor.Penalties.Mouse.ToString()}%");
             msgEmbed.AddField("Market Price", $"{armor.Avg24hPrice.ToString()} ₽");
+
+            await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+            return;
+        }
+
+        [Command("medical")]
+        [Description("Get information about a medical item")]
+        public async Task GetMedicalInfo(CommandContext ctx, [Description("The name of the medical item")] params string[] name)
+        {
+            string nameString = name.ToStringWithSpaces().ToLower();
+            List<Medical> medicals = await _tarkovLensService.GetItemsByKind<Medical>(Enums.KindOfItem.Medical);
+
+            var medical = medicals.Where(x => x.Name.ToLower().Contains(nameString)).FirstOrDefault();
+
+            if (medical.IsNull())
+            {
+                var errEmbed = new DiscordEmbedBuilder
+                {
+                    Title = "Medical item not found",
+                    Description = nameString,
+                    Color = DiscordColor.Red
+                };
+
+                await ctx.Channel.SendMessageAsync(embed: errEmbed).ConfigureAwait(false);
+                return;
+            }
+
+            var msgEmbed = new DiscordEmbedBuilder
+            {
+                Title = medical.Name,
+                ImageUrl = medical.Img,
+                Color = DiscordColor.Teal
+            };
+
+            if (medical.Resources.IsNotNull() && medical.Resources != 0) msgEmbed.AddField("Max resources", medical.Resources.ToString());
+            if (medical.UseTime.IsNotNull()) msgEmbed.AddField("Use time", $"{medical.UseTime.ToString()} sec");
+
+            #region Effects
+            if (medical.Effects.Health.IsNotNull())
+            {
+                msgEmbed.AddField("Amount healed", $"{medical.Effects.Health.Value.ToString()}");
+            }
+
+            if (medical.Effects.Energy.IsNotNull())
+            {
+                if (medical.Effects.Energy.Value.IsNotNull())
+                    msgEmbed.AddField("Energy", $"{medical.Effects.Energy.Value}");
+            }
+
+            if (medical.Effects.Hydration.IsNotNull())
+            {
+                if (medical.Effects.Hydration.Value.IsNotNull())
+                    msgEmbed.AddField("Hydration", $"{medical.Effects.Hydration.Value}");
+            }
+
+            if (medical.Effects.Bloodloss.IsNotNull())
+            {
+                if (medical.Effects.Bloodloss.Removes.IsNotNull() && medical.Effects.Bloodloss.Removes == true) 
+                    msgEmbed.AddField("Removes bloodloss?", "Yes");
+            }
+
+            if (medical.Effects.LightBleeding.IsNotNull())
+            {
+                if (medical.Effects.LightBleeding.Removes.IsNotNull() && medical.Effects.LightBleeding.Removes == true)
+                    msgEmbed.AddField("Removes light bleeding?", "Yes");
+            }
+
+            if (medical.Effects.HeavyBleeding.IsNotNull())
+            {
+                if (medical.Effects.HeavyBleeding.Removes.IsNotNull() && medical.Effects.HeavyBleeding.Removes == true)
+                    msgEmbed.AddField("Removes heavy bleeding?", "Yes");
+            }
+
+            if (medical.Effects.Fracture.IsNotNull())
+            {
+                if (medical.Effects.Fracture.Removes.IsNotNull() && medical.Effects.Fracture.Removes == true)
+                    msgEmbed.AddField("Removes fractures?", "Yes");
+            }
+
+            if (medical.Effects.Pain.IsNotNull())
+            {
+                if (medical.Effects.Pain.Removes.IsNotNull() && medical.Effects.Pain.Removes == true)
+                    msgEmbed.AddField("Removes pain?", $"Yes, for {medical.Effects.Pain.Duration} sec");
+            }
+
+            if (medical.Effects.Contusion.IsNotNull())
+            {
+                if (medical.Effects.Contusion.Removes.IsNotNull() && medical.Effects.Contusion.Removes == true)
+                    msgEmbed.AddField("Removes contusion?", "Yes");
+            }
+
+            if (medical.Effects.Tremor.IsNotNull())
+            {
+                if (medical.Effects.Tremor.Removes.IsNotNull() && medical.Effects.Tremor.Removes == false && medical.Effects.Tremor.Chance == 1)
+                {
+                    var tremorInfo = $"Yes, for {medical.Effects.Tremor.Duration} sec";
+                    tremorInfo += medical.Effects.Tremor.Delay > 0 ? $" after a {medical.Effects.Tremor.Delay} sec delay" : "";
+                    msgEmbed.AddField("Causes tremor?", tremorInfo);
+                }
+            }
+            #endregion
+
+            msgEmbed.AddField("Market Price", $"{medical.Avg24hPrice} ₽");
 
             await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
             return;
