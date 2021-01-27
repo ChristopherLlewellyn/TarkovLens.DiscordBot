@@ -7,6 +7,8 @@ using AsciiTableFormatter;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using MoreLinq;
+using TarkovLensBot.Functions;
 using TarkovLensBot.Helpers.ExtensionMethods;
 using TarkovLensBot.Models.CommandResponses;
 using TarkovLensBot.Models.Items;
@@ -25,46 +27,64 @@ namespace TarkovLensBot.Commands
 
         [Command("price")]
         [Description("Gets the market price of an item")]
-        public async Task GetItemPrice(CommandContext ctx, [Description("The name of the item to find, e.g. salewa.")] params string[] name)
+        public async Task GetItemPrice(CommandContext ctx, [Description("The name of the item to find, e.g. salewa")] params string[] name)
         {
             var nameString = name.ToStringWithSpaces();
 
             var items = await _tarkovLensService.GetItemsBySearch(nameString).ConfigureAwait(false);
-            var item = items.Where(x => x.Name.ToLower().Contains(nameString.ToLower())).FirstOrDefault();
+            items = items.Where(x => x.Avg24hPrice > 0).ToList();
+
+            var item = items.Where(x => x.Name.ToLower() == nameString.ToLower()).FirstOrDefault();
+
+            if (item.IsNull())
+                item = items.Where(x => x.Name.ToLower().Contains(nameString.ToLower())).FirstOrDefault();
 
             if (item.IsNull())
                 item = items.FirstOrDefault();
 
+            // Alternative items that closely matched the user's input
+            var alternatives = items.Where(x => x.Name != item.Name).DistinctBy(x => x.Name).ToList();
+            var alternativesString = alternatives.CreateAlternativesString();
+
+            // Build and return response message
+            var responseMsg = new DiscordEmbedBuilder();
+
             if (item != null)
             {
-                var msgEmbed = new DiscordEmbedBuilder
+                responseMsg = new DiscordEmbedBuilder
                 {
-                    Title = item.Name,
+                    Title = $"{item.Avg24hPrice} ₽",
                     ImageUrl = item.Img,
                     Color = DiscordColor.Orange
                 };
 
-                msgEmbed.AddField("Market Price", $"{item.Avg24hPrice} ₽");
+                responseMsg.AddField("Item", item.Name);
 
-                await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+                if (alternatives.IsNotNullOrEmpty())
+                {
+                    responseMsg.WithFooter($"Wrong item? Did you mean:{Environment.NewLine}{Environment.NewLine}{alternativesString}");
+                }
+
+                await ctx.Channel.SendMessageAsync(embed: responseMsg).ConfigureAwait(false);
                 return;
             }
-            else
+            
+            if (item.IsNull())
             {
-                var errEmbed = new DiscordEmbedBuilder
+                responseMsg = new DiscordEmbedBuilder
                 {
                     Title = "Item not found",
                     Description = nameString,
                     Color = DiscordColor.Red
                 };
 
-                await ctx.Channel.SendMessageAsync(embed: errEmbed).ConfigureAwait(false);
+                await ctx.Channel.SendMessageAsync(embed: responseMsg).ConfigureAwait(false);
                 return;
             }
         }
 
-        [Command("compare")]
-        [Description("Compare two different ammunition types")]
+        [Command("ammocompare")]
+        [Description("Compare two different ammunitions")]
         public async Task CompareAmmo(
             CommandContext ctx,
             [Description("The name of the first ammo to compare, e.g. m995")] string ammo1Name,
@@ -301,10 +321,16 @@ namespace TarkovLensBot.Commands
                 Color = DiscordColor.Teal
             };
 
-            if (medical.Resources.IsNotNull() && medical.Resources != 0) msgEmbed.AddField("Max resources", medical.Resources.ToString());
-            if (medical.UseTime.IsNotNull()) msgEmbed.AddField("Use time", $"{medical.UseTime.ToString()} sec");
+            if (medical.Resources.IsNotNull() && medical.Resources != 0)
+            {
+                msgEmbed.AddField("Max resources", medical.Resources.ToString());
+            }
 
-            #region Effects
+            if (medical.UseTime.IsNotNull())
+            {
+                msgEmbed.AddField("Use time", $"{medical.UseTime.ToString()} sec");
+            }
+
             if (medical.Effects.Health.IsNotNull())
             {
                 msgEmbed.AddField("Amount healed", $"{medical.Effects.Health.Value.ToString()}");
@@ -367,7 +393,6 @@ namespace TarkovLensBot.Commands
                     msgEmbed.AddField("Causes tremor?", tremorInfo);
                 }
             }
-            #endregion
 
             msgEmbed.AddField("Market Price", $"{medical.Avg24hPrice} ₽");
 
