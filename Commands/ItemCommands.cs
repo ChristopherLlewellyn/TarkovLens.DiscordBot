@@ -74,9 +74,11 @@ namespace TarkovLensBot.Commands
                 responseMsg = new DiscordEmbedBuilder
                 {
                     Title = "Item not found",
-                    Description = nameString,
+                    Description = $"\"{nameString}\"",
                     Color = DiscordColor.Red
                 };
+
+                responseMsg.WithFooter("Note: search using the long name, e.g. instead of \"btc\" use \"bitcoin\"");
 
                 await ctx.Channel.SendMessageAsync(embed: responseMsg).ConfigureAwait(false);
                 return;
