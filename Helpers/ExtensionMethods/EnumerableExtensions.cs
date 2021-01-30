@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TarkovLensBot.Interfaces;
 
 namespace TarkovLensBot.Helpers.ExtensionMethods
 {
@@ -25,6 +26,20 @@ namespace TarkovLensBot.Helpers.ExtensionMethods
             string output = string.Empty;
             foreach (var item in enumerable) output += item + " ";
             return output.Trim();
+        }
+
+        public static T SearchForItem<T>(this IEnumerable<T> items, string itemName) where T : IItem
+        {
+            items = items.OrderBy(x => x.Name.Length);
+            var item = items.Where(x => x.Name.ToLower() == itemName.ToLower()).FirstOrDefault();
+
+            if (item.IsNull())
+                item = items.Where(x => x.Name.ToLower().Contains(itemName.ToLower())).FirstOrDefault();
+
+            if (item.IsNull())
+                item = items.FirstOrDefault();
+
+            return item;
         }
     }
 }
