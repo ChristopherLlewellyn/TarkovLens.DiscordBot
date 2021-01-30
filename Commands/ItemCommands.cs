@@ -32,7 +32,10 @@ namespace TarkovLensBot.Commands
             var nameString = name.ToStringWithSpaces();
 
             var items = await _tarkovLensService.GetItemsBySearch(nameString).ConfigureAwait(false);
-            items = items.Where(x => x.Avg24hPrice > 0).ToList();
+            items = items
+                .Where(x => x.Avg24hPrice > 0)
+                .OrderBy(x => x.Name.Length)
+                .ToList();
 
             var item = items.Where(x => x.Name.ToLower() == nameString.ToLower()).FirstOrDefault();
 
