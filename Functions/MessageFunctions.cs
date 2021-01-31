@@ -24,7 +24,10 @@ namespace TarkovLensBot.Functions
                 if (i == maxAlternatives - 1) // Max 3 alternatives
                 {
                     if (items.Count > maxAlternatives)
-                        returnString += " ...";
+                    {
+                        returnString += Environment.NewLine;
+                        returnString += $"...and {items.Count - maxAlternatives} more items";
+                    }
                     break;
                 }
             }

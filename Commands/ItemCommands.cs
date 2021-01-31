@@ -47,12 +47,11 @@ namespace TarkovLensBot.Commands
             {
                 responseMsg = new DiscordEmbedBuilder
                 {
-                    Title = $"{item.Avg24hPrice} ₽",
                     ImageUrl = item.Img,
                     Color = DiscordColor.Orange
                 };
 
-                responseMsg.AddField("Item", item.Name);
+                responseMsg.AddField($"{item.Avg24hPrice} ₽", item.Name);
 
                 if (alternatives.IsNotNullOrEmpty())
                 {
