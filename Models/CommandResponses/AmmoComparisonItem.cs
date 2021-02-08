@@ -7,8 +7,8 @@ namespace TarkovLensBot.Models.CommandResponses
 {
     public class AmmoComparisonItem
     {
-        public string Name { get; set; }
         public string Caliber { get; set; }
+        public string Name { get; set; }
         public string Damage { get; set; }
         public string Penetration { get; set; }
         public string ArmorDamage { get; set; }

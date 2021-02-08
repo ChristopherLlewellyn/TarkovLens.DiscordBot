@@ -78,43 +78,36 @@ namespace TarkovLensBot.Commands
             }
         }
 
-        [Command("ammocompare")]
-        [Description("Compare two different ammunitions")]
+        [Command("compareammo")]
+        [Description("Compare multiple ammunitions")]
         public async Task CompareAmmo(
             CommandContext ctx,
-            [Description("The name of the first ammo to compare, e.g. m995")] string ammo1Name,
-            [Description("The name of the second ammo to compare, e.g. BT")] string ammo2Name
+            [Description("A string of caliber and ammo names, e.g: \"5.56 m995, 5.45 bt\"")] params string[] input
             )
         {
             List<Ammunition> ammunitions = await _tarkovLensService.GetAmmunitions();
+            var ammosToCompare = MessageFunctions.ParseCompareAmmoInput(ammunitions, input);
 
-            var ammo1 = ammunitions.Where(x => x.Name.ToLower().Contains(ammo1Name.ToLower())).FirstOrDefault();
-            var ammo2 = ammunitions.Where(x => x.Name.ToLower().Contains(ammo2Name.ToLower())).FirstOrDefault();
-
-            if (ammo1 == null || ammo2 == null)
+            if (ammosToCompare.IsNullOrEmpty())
             {
                 var errEmbed = new DiscordEmbedBuilder
                 {
                     Title = "Item(s) not found",
                     Color = DiscordColor.Red
                 };
-
-                if (ammo1 == null)
-                    errEmbed.AddField("Could not find any items matching:", ammo1Name);
-                if (ammo2 == null)
-                    errEmbed.AddField("Could not find any items matching:", ammo2Name);
+                errEmbed.AddField("Tip", "Provide the caliber and the name of the ammunition", inline: true);
+                errEmbed.AddField("Example", "\"5.56 m995, 5.45 bt, 9x19 ap\"", inline: true);
 
                 await ctx.Channel.SendMessageAsync(embed: errEmbed).ConfigureAwait(false);
                 return;
             }
 
             var comparisonList = new List<AmmoComparisonItem>();
-
-            var ammo1Details = new AmmoComparisonItem(ammo1.ShortName, ammo1.Caliber, ammo1.Damage, ammo1.Penetration, ammo1.ArmorDamage, ammo1.Velocity, ammo1.Tracer, ammo1.Avg24hPrice);
-            var ammo2Details = new AmmoComparisonItem(ammo2.ShortName, ammo2.Caliber, ammo2.Damage, ammo2.Penetration, ammo2.ArmorDamage, ammo2.Velocity, ammo2.Tracer, ammo2.Avg24hPrice);
-
-            comparisonList.Add(ammo1Details);
-            comparisonList.Add(ammo2Details);
+            foreach (var ammo in ammosToCompare)
+            {
+                var tableRow = new AmmoComparisonItem(ammo.ShortName, ammo.Caliber, ammo.Damage, ammo.Penetration, ammo.ArmorDamage, ammo.Velocity, ammo.Tracer, ammo.Avg24hPrice);
+                comparisonList.Add(tableRow);
+            }
 
             string output = Formatter.Format(comparisonList);
             output = "```" + output + "```";
@@ -128,7 +121,7 @@ namespace TarkovLensBot.Commands
         [Description("Get information about an ammunition type")]
         public async Task GetAmmoInfo(
             CommandContext ctx, 
-            [Description("The caliber of the ammo")] string caliber = null,
+            [Description("The caliber of the ammo")] string caliber,
             [Description("The name of the ammo")] params string[] name)
         {
             var nameString = name.ToStringWithSpaces();
