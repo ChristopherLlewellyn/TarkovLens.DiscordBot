@@ -26,7 +26,7 @@ namespace TarkovLensBot.Commands
         }
 
         [Command("price")]
-        [Description("Gets the market price of an item")]
+        [Description("Gets the market price of an item. Example usage: \"!price salewa\"")]
         public async Task GetItemPrice(CommandContext ctx, [Description("The name of the item to find, e.g. salewa")] params string[] name)
         {
             var nameString = name.ToStringWithSpaces();
@@ -79,10 +79,10 @@ namespace TarkovLensBot.Commands
         }
 
         [Command("compareammo")]
-        [Description("Compare multiple ammunitions")]
+        [Description("Compare multiple ammunitions. Example usage: \"!compareammo 5.56 m995, 5.45 bt, 9x19 ap\"")]
         public async Task CompareAmmo(
             CommandContext ctx,
-            [Description("A string of caliber and ammo names, e.g: \"5.56 m995, 5.45 bt\"")] params string[] input
+            [Description("A string of caliber and ammo names")] params string[] input
             )
         {
             List<Ammunition> ammunitions = await _tarkovLensService.GetAmmunitions();
@@ -118,7 +118,7 @@ namespace TarkovLensBot.Commands
         }
 
         [Command("ammo")]
-        [Description("Get information about an ammunition type")]
+        [Description("Get information about an ammunition type. Example usage: \"!ammo 5.56 m995\"")]
         public async Task GetAmmoInfo(
             CommandContext ctx, 
             [Description("The caliber of the ammo")] string caliber,
@@ -182,7 +182,7 @@ namespace TarkovLensBot.Commands
         }
 
         [Command("caliber")]
-        [Description("Get information about a caliber")]
+        [Description("Get information about a caliber. Example usage: \"!caliber 9x19\"")]
         public async Task GetCaliberInfo(CommandContext ctx, [Description("The name of the caliber")] params string[] caliber)
         {
             string caliberString = caliber.ToStringWithSpaces();
@@ -238,7 +238,7 @@ namespace TarkovLensBot.Commands
         }
 
         [Command("armor")]
-        [Description("Get information about an armor")]
+        [Description("Get information about an armor. Example usage: \"!armor zhuk-6a\"")]
         public async Task GetArmorInfo(CommandContext ctx, [Description("The name of the armor")] params string[] name)
         {
             string nameString = name.ToStringWithSpaces().ToLower();
@@ -281,7 +281,7 @@ namespace TarkovLensBot.Commands
         }
 
         [Command("medical")]
-        [Description("Get information about a medical item")]
+        [Description("Get information about a medical item or stimulant. Example usage: \"!medical salewa\"")]
         public async Task GetMedicalInfo(CommandContext ctx, [Description("The name of the medical item")] params string[] name)
         {
             string nameString = name.ToStringWithSpaces().ToLower();
