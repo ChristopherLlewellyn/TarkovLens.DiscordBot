@@ -21,7 +21,7 @@ namespace TarkovLensBot.Models.Items
 
         #region Tarkov-Database fields shared between all items
 
-        [JsonPropertyName("_id")]
+        [JsonPropertyName("bsgId")]
         public string BsgId { get; set; }
 
         [JsonPropertyName("name")]

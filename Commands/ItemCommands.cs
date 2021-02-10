@@ -26,6 +26,7 @@ namespace TarkovLensBot.Commands
         }
 
         [Command("price")]
+        [Aliases("p")]
         [Description("Gets the market price of an item. Example usage: \"!price salewa\"")]
         public async Task GetItemPrice(CommandContext ctx, [Description("The name of the item to find, e.g. salewa")] params string[] name)
         {
@@ -76,6 +77,7 @@ namespace TarkovLensBot.Commands
         }
 
         [Command("compareammo")]
+        [Aliases("cammo")]
         [Description("Compare multiple ammunitions. Example usage: \"!compareammo 5.56 m995, 5.45 bt, 9x19 ap\"")]
         public async Task CompareAmmo(
             CommandContext ctx,
@@ -252,6 +254,7 @@ namespace TarkovLensBot.Commands
         }
 
         [Command("medical")]
+        [Aliases("med")]
         [Description("Get information about a medical item or stimulant. Example usage: \"!medical salewa\"")]
         public async Task GetMedicalInfo(CommandContext ctx, [Description("The name of the medical item")] params string[] name)
         {
@@ -275,9 +278,9 @@ namespace TarkovLensBot.Commands
             var msgEmbed = new DiscordEmbedBuilder
             {
                 Title = medical.Name,
-                ImageUrl = medical.Img,
                 Color = DiscordColor.Teal
             };
+            msgEmbed.WithThumbnail(medical.Img);
 
             if (medical.Resources.IsNotNull() && medical.Resources != 0)
             {
@@ -306,11 +309,11 @@ namespace TarkovLensBot.Commands
                     msgEmbed.AddField("Hydration", $"{medical.Effects.Hydration.Value}");
             }
 
-            if (medical.Effects.Bloodloss.IsNotNull())
+            /*if (medical.Effects.Bloodloss.IsNotNull())
             {
                 if (medical.Effects.Bloodloss.Removes.IsNotNull() && medical.Effects.Bloodloss.Removes == true) 
                     msgEmbed.AddField("Removes bloodloss?", "Yes");
-            }
+            }*/
 
             if (medical.Effects.LightBleeding.IsNotNull())
             {
