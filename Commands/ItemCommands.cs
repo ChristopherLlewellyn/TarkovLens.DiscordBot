@@ -32,8 +32,7 @@ namespace TarkovLensBot.Commands
             var nameString = name.ToStringWithSpaces();
 
             var items = await _tarkovLensService.GetItemsBySearch(nameString).ConfigureAwait(false);
-            items = items.Where(x => x.Avg24hPrice > 0).ToList();
-
+            items = items.Where(x => x.Avg24hPrice > 0).ToList(); // Removes stuff like quest items, that don't have value
             var item = items.SearchForItem(nameString);
 
             // Alternative items that closely matched the user's input
@@ -45,17 +44,16 @@ namespace TarkovLensBot.Commands
 
             if (item != null)
             {
-                responseMsg = new DiscordEmbedBuilder
-                {
-                    ImageUrl = item.Img,
-                    Color = DiscordColor.Orange
+                responseMsg = new DiscordEmbedBuilder 
+                { 
+                    Color = DiscordColor.Orange,
+                    ImageUrl = item.Img
                 };
-
-                responseMsg.AddField($"{item.Avg24hPrice} ₽", item.Name);
+                responseMsg.AddField($"{item.Avg24hPrice} ₽", $"`{item.Name}`");
 
                 if (alternatives.IsNotNullOrEmpty())
                 {
-                    responseMsg.WithFooter($"Wrong item? Did you mean:{Environment.NewLine}{Environment.NewLine}{alternativesString}");
+                    responseMsg.WithFooter($"Wrong item? Did you mean:{Environment.NewLine}{alternativesString}");
                 }
 
                 await ctx.Channel.SendMessageAsync(embed: responseMsg).ConfigureAwait(false);
@@ -70,7 +68,6 @@ namespace TarkovLensBot.Commands
                     Description = $"\"{nameString}\"",
                     Color = DiscordColor.Red
                 };
-
                 responseMsg.WithFooter("Note: search using the long name, e.g. instead of \"btc\" use \"bitcoin\"");
 
                 await ctx.Channel.SendMessageAsync(embed: responseMsg).ConfigureAwait(false);
@@ -132,23 +129,8 @@ namespace TarkovLensBot.Commands
             }
 
             List<Ammunition> ammunitions = await _tarkovLensService.GetAmmunitions(nameOfItem: nameString, caliber: caliber);
-            Ammunition ammo = null;
+            Ammunition ammo = ammunitions.SearchForItem(nameString);
 
-            // Some filtering to more accurately choose the ammo that the user searched for
-            foreach (var a in ammunitions)
-            {
-                if (a.Name.ContainsWord(nameString))
-                {
-                    ammo = a;
-                    break;
-                }
-            }
-
-            // If there is no direct word match, use the first item that the API returned
-            if (ammo.IsNull())
-                ammo = ammunitions.FirstOrDefault();
-
-            // If still no ammo, return "not found" message
             if (ammo.IsNull())
             {
                 var errEmbed = new DiscordEmbedBuilder
@@ -165,17 +147,19 @@ namespace TarkovLensBot.Commands
             var msgEmbed = new DiscordEmbedBuilder
             {
                 Title = ammo.Name,
-                ImageUrl = ammo.Img,
                 Color = DiscordColor.Teal
             };
+            msgEmbed.WithThumbnail(ammo.Img);
 
-            msgEmbed.AddField("Damage", ammo.Damage.ToString());
-            msgEmbed.AddField("Penetration", ammo.Penetration.ToString());
-            msgEmbed.AddField("Armor Damage", ammo.ArmorDamage.ToString());
-            msgEmbed.AddField("Velocity", ammo.Velocity.ToString());
-            msgEmbed.AddField("Tracer?", ammo.Tracer == true ? "Yes" : "No");
-            msgEmbed.AddField("Caliber", ammo.Caliber.ToString());
-            msgEmbed.AddField("Market Price", $"{ammo.Avg24hPrice.ToString()} ₽");
+            msgEmbed.AddField("Damage", ammo.Damage.ToString(), true);
+            msgEmbed.AddField("Penetration", ammo.Penetration.ToString(), true);
+            msgEmbed.AddField("Armor Damage", ammo.ArmorDamage.ToString(), true);
+            msgEmbed.AddField("Velocity", ammo.Velocity.ToString(), true);
+            msgEmbed.AddField("Tracer?", ammo.Tracer == true ? "Yes" : "No", true);
+            msgEmbed.AddField("Caliber", ammo.Caliber.ToString(), true);
+            msgEmbed.AddField("Market Price (per round)", $"{ammo.Avg24hPrice} ₽");
+
+            msgEmbed.AddAlternativeItemsFooter(ammunitions, ammo);
 
             await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
             return;
@@ -188,23 +172,6 @@ namespace TarkovLensBot.Commands
             string caliberString = caliber.ToStringWithSpaces();
             List<Ammunition> ammunitions = await _tarkovLensService.GetAmmunitions(caliber: caliberString);
 
-            #region Precise filtering
-            // Some filtering to more accurately choose the ammo that the user searched for
-            var ammunitionsFiltered = new List<Ammunition>();
-            foreach (var ammo in ammunitions)
-            {
-                if (ammo.Caliber.ContainsWord(caliberString))
-                {
-                    ammunitionsFiltered.Add(ammo);
-                }
-            }
-
-            if (ammunitionsFiltered.IsNotNullOrEmpty())
-            {
-                ammunitions = ammunitionsFiltered;
-            }
-
-            // If still no ammo, return "not found" message
             if (ammunitions.IsNullOrEmpty())
             {
                 var errEmbed = new DiscordEmbedBuilder
@@ -217,11 +184,8 @@ namespace TarkovLensBot.Commands
                 await ctx.Channel.SendMessageAsync(embed: errEmbed).ConfigureAwait(false);
                 return;
             }
-            #endregion
 
-            #region Create display table
             var comparisonList = new List<CaliberComparisonItem>();
-
             foreach (var ammo in ammunitions)
             {
                 comparisonList.Add(new CaliberComparisonItem(ammo.ShortName, ammo.Caliber, ammo.Damage, ammo.Penetration, ammo.ArmorDamage, ammo.Velocity, ammo.Tracer, ammo.Avg24hPrice));
@@ -230,7 +194,6 @@ namespace TarkovLensBot.Commands
 
             string output = Formatter.Format(comparisonList);
             output = "```" + output + "```";
-            #endregion
 
             await ctx.Channel.SendMessageAsync("**Resize Discord if the table does not display properly**").ConfigureAwait(false);
             await ctx.Channel.SendMessageAsync(output).ConfigureAwait(false);
@@ -242,9 +205,8 @@ namespace TarkovLensBot.Commands
         public async Task GetArmorInfo(CommandContext ctx, [Description("The name of the armor")] params string[] name)
         {
             string nameString = name.ToStringWithSpaces().ToLower();
-            List<Armor> armors = await _tarkovLensService.GetItemsByKind<Armor>(Enums.KindOfItem.Armor);
-
-            var armor = armors.Where(x => x.Name.ToLower().Contains(nameString)).FirstOrDefault();
+            List<Armor> armors = await _tarkovLensService.GetItemsByKind<Armor>(Enums.KindOfItem.Armor, nameString);
+            var armor = armors.SearchForItem(nameString);
 
             if (armor.IsNull())
             {
@@ -262,19 +224,28 @@ namespace TarkovLensBot.Commands
             var msgEmbed = new DiscordEmbedBuilder
             {
                 Title = armor.Name,
-                ImageUrl = armor.Img,
                 Color = DiscordColor.Teal
             };
+            msgEmbed.WithThumbnail(armor.Img);
 
-            msgEmbed.AddField("Class", armor.ArmorProperties.Class.ToString());
-            msgEmbed.AddField("Max Durability", armor.ArmorProperties.Durability.ToString());
-            msgEmbed.AddField("Protects", armor.ArmorProperties.Zones.Join(", "));
-            msgEmbed.AddField("Material", armor.ArmorProperties.Material.Name.ToString());
-            msgEmbed.AddField("Weight", $"{armor.Weight.ToString()} kg");
-            msgEmbed.AddField("Movement Speed", $"{armor.Penalties.Speed.ToString()}%");
-            msgEmbed.AddField("Ergonomics", $"{armor.Penalties.Ergonomics.ToString()}%");
-            msgEmbed.AddField("Turn Speed", $"{armor.Penalties.Mouse.ToString()}%");
-            msgEmbed.AddField("Market Price", $"{armor.Avg24hPrice.ToString()} ₽");
+            msgEmbed.AddField("Class", armor.ArmorProperties.Class.ToString(), true);
+            msgEmbed.AddField("Durability", armor.ArmorProperties.Durability.ToString(), true);
+            msgEmbed.AddField("Weight", $"{armor.Weight} kg", true);
+            msgEmbed.AddField("Ergonomics", $"{armor.Penalties.Ergonomics}%", true);
+            msgEmbed.AddField("Turn Speed", $"{armor.Penalties.Mouse}%", true);
+            msgEmbed.AddField("Movement Speed", $"{armor.Penalties.Speed}%", true);
+
+            var armorZonesString = string.Empty;
+            foreach (var zone in armor.ArmorProperties.Zones)
+            {
+                armorZonesString += $"• {zone.FirstLetterToUpper()}{Environment.NewLine}";
+            }
+            msgEmbed.AddField("Protects", armorZonesString, true);
+
+            msgEmbed.AddField("Material", armor.ArmorProperties.Material.Name.ToString().FirstLetterToUpper(), true);
+            msgEmbed.AddField("Market Price", $"{armor.Avg24hPrice} ₽");
+
+            msgEmbed.AddAlternativeItemsFooter(armors, armor);
 
             await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
             return;
@@ -285,9 +256,8 @@ namespace TarkovLensBot.Commands
         public async Task GetMedicalInfo(CommandContext ctx, [Description("The name of the medical item")] params string[] name)
         {
             string nameString = name.ToStringWithSpaces().ToLower();
-            List<Medical> medicals = await _tarkovLensService.GetItemsByKind<Medical>(Enums.KindOfItem.Medical);
-
-            var medical = medicals.Where(x => x.Name.ToLower().Contains(nameString)).FirstOrDefault();
+            List<Medical> medicals = await _tarkovLensService.GetItemsByKind<Medical>(Enums.KindOfItem.Medical, nameString);
+            var medical = medicals.SearchForItem(nameString);
 
             if (medical.IsNull())
             {
@@ -383,6 +353,7 @@ namespace TarkovLensBot.Commands
             }
 
             msgEmbed.AddField("Market Price", $"{medical.Avg24hPrice} ₽");
+            msgEmbed.AddAlternativeItemsFooter(medicals, medical);
 
             await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
             return;

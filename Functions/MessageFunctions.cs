@@ -21,7 +21,7 @@ namespace TarkovLensBot.Functions
                     returnString += Environment.NewLine;
                 }
 
-                returnString += $"\"{items[i].Name}\"";
+                returnString += $"• {items[i].Name}";
 
                 if (i == maxAlternatives - 1) // Max 3 alternatives
                 {
