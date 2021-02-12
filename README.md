@@ -3,7 +3,7 @@
 
 An Escape from Tarkov Discord bot that provides market prices, ammo comparison tables and information on various types of in-game items.
 
-## Commands
+## Command Usage
 |     Command    | Shorthand | Description                                                                                        | Example                                    |
 |:--------------:|-----------|----------------------------------------------------------------------------------------------------|--------------------------------------------|
 | `!price`       | `!p`      | Gets the market price of an item.                                                                  | `!price salewa`                            |
@@ -13,6 +13,12 @@ An Escape from Tarkov Discord bot that provides market prices, ammo comparison t
 | `!armor`       | -         | Get information about an armor.                                                                    | `!armor zhuk-6a`                           |
 | `!medical`     | `!med`    | Get information about a medical item or stimulant.                                                 | `!medical salewa`                          |
 | `!key`         | `!k`      | Get information about a key.                                                                       | `!key factory`                             |
+
+## Screenshots
+<p align="center"><img src="https://i.ibb.co/1LJdK1g/tl-screenshot1.png" alt="PriceCommandScreenshot" width="50%" height="50%" /></p>
+<p align="center"><img src="https://i.ibb.co/sCZTJ6x/tl-screenshot2.png" alt="AmmoCommandScreenshot" width="50%" height="50%" /></p>
+<p align="center"><img src="https://i.ibb.co/0DygrdD/tl-screenshot3.png" alt="KeyCommandScreenshot" width="50%" height="50%" /></p>
+<p align="center"><img src="https://i.ibb.co/1bj5hNY/tl-screenshot4.png" alt="CompareammoCommandScreenshot" width="50%" height="50%" /></p>
 
 ## Tools
 Built with C# .Net Core 3.1 and the DSharpPlus Nuget package.
