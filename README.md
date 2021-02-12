@@ -1,4 +1,4 @@
-<p align="center"><img src="https://ibb.co/DWsvnYP" alt="TarkovLensDiscordBotLogo" width="30%" height="30%" /></p>
+<p align="center"><img src="https://i.ibb.co/Pj3P8Ms/tarkovlens-logo.png" alt="TarkovLensDiscordBotLogo" width="30%" height="30%" /></p>
 <h1 align="center">TarkovLens Discord Bot</h1>
 
 An Escape from Tarkov Discord bot that provides market prices, ammo comparison tables and information on various types of in-game items.
