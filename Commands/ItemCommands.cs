@@ -7,6 +7,7 @@ using AsciiTableFormatter;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using Humanizer;
 using MoreLinq;
 using TarkovLensBot.Functions;
 using TarkovLensBot.Helpers.ExtensionMethods;
@@ -46,7 +47,7 @@ namespace TarkovLensBot.Commands
                     Color = DiscordColor.Orange,
                     ImageUrl = item.Img
                 };
-                responseMsg.AddField($"{item.Avg24hPrice} ₽", $"`{item.Name}`");
+                responseMsg.AddField(item.Avg24hPriceFormatted, $"`{item.Name}`");
                 responseMsg.AddAlternativeItemsFooter(items, item);
 
                 await ctx.Channel.SendMessageAsync(embed: responseMsg).ConfigureAwait(false);
@@ -150,7 +151,7 @@ namespace TarkovLensBot.Commands
             msgEmbed.AddField("Velocity", ammo.Velocity.ToString(), true);
             msgEmbed.AddField("Tracer?", ammo.Tracer == true ? "Yes" : "No", true);
             msgEmbed.AddField("Caliber", ammo.Caliber.ToString(), true);
-            msgEmbed.AddField("Market Price (per round)", $"{ammo.Avg24hPrice} ₽");
+            msgEmbed.AddField("Market Price (per round)", ammo.Avg24hPriceFormatted);
             msgEmbed.AddAlternativeItemsFooter(ammunitions, ammo);
 
             await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
@@ -235,7 +236,7 @@ namespace TarkovLensBot.Commands
             msgEmbed.AddField("Protects", armorZonesString, true);
 
             msgEmbed.AddField("Material", armor.ArmorProperties.Material.Name.ToString().FirstLetterToUpper(), true);
-            msgEmbed.AddField("Market Price", $"{armor.Avg24hPrice} ₽");
+            msgEmbed.AddField("Market Price", armor.Avg24hPriceFormatted);
 
             msgEmbed.AddAlternativeItemsFooter(armors, armor);
 
@@ -339,7 +340,7 @@ namespace TarkovLensBot.Commands
                 }
             }
 
-            msgEmbed.AddField("Market Price", $"{medical.Avg24hPrice} ₽");
+            msgEmbed.AddField("Market Price", medical.Avg24hPriceFormatted);
             msgEmbed.AddAlternativeItemsFooter(medicals, medical);
 
             await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
@@ -378,8 +379,8 @@ namespace TarkovLensBot.Commands
             var mapsString = key.Maps.ToBulletPointString();
             msgEmbed.AddField("Map(s)", mapsString.IsNotNullOrEmpty() ? mapsString : "-", true);
             
-            msgEmbed.AddField("Rarity", key.Rarity.ToString(), true);
-            msgEmbed.AddField("Market Price", $"{key.Avg24hPrice} ₽", true);
+            msgEmbed.AddField("Rarity", key.Rarity.ToString().Humanize(LetterCasing.Sentence), true);
+            msgEmbed.AddField("Market Price", key.Avg24hPriceFormatted, true);
 
             var usageString = key.Usage.ToBulletPointString();
             msgEmbed.AddField("Usage", usageString.IsNotNullOrEmpty() ? usageString : "-");
