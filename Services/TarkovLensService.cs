@@ -25,45 +25,64 @@ namespace TarkovLensBot.Services
             httpClient = client;
         }
 
+        /// <summary>
+        /// Gets a list of items that match the provided item name. Returns an empty list if no items were found.
+        /// </summary>
+        /// <param name="nameOfItem"></param>
+        /// <returns></returns>
         public async Task<List<BaseItem>> GetItemsBySearch(string nameOfItem)
         {
+            var items = new List<BaseItem>();
             var response = await httpClient.GetAsync($"item/search?name={nameOfItem}");
-            response.EnsureSuccessStatusCode();
-
-            string json = await response.Content.ReadAsStringAsync();
-            var items = JsonSerializer.Deserialize<List<BaseItem>>(json);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                string json = await response.Content.ReadAsStringAsync();
+                items = JsonSerializer.Deserialize<List<BaseItem>>(json);
+            }
 
             return items;
         }
 
         /// <summary>
-        /// Get a list of all ammunitions.
+        /// Get a list of all ammunitions matching the parameters. Returns an empty list if no item was found.
         /// </summary>
         /// <param name="nameOfItem">OPTIONAL: search for ammunitions by name</param>
         /// /// <param name="caliber">OPTIONAL: search for ammunitions by caliber</param>
         /// <returns>A list of Ammunition objects.</returns>
         public async Task<List<Ammunition>> GetAmmunitions(string nameOfItem = null, string caliber = null)
         {
+            var items = new List<Ammunition>();
             var response = await httpClient.GetAsync($"item/kind/{KindOfItem.Ammunition}?name={nameOfItem}&caliber={caliber}");
-            response.EnsureSuccessStatusCode();
-
-            string json = await response.Content.ReadAsStringAsync();
             
-            JsonSerializerOptions options = new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } };
-            var items = JsonSerializer.Deserialize<List<Ammunition>>(json, options);
+            if (response.IsSuccessStatusCode)
+            {
+                string json = await response.Content.ReadAsStringAsync();
+                JsonSerializerOptions options = new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } };
+                items = JsonSerializer.Deserialize<List<Ammunition>>(json, options);
+            }
 
             return items;
         }
 
+        /// <summary>
+        /// Gets a list of items that match the provided parameters. Returns an empty list if no item was found.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="kind"></param>
+        /// <param name="nameOfItem"></param>
+        /// <returns></returns>
         public async Task<List<T>> GetItemsByKind<T>(KindOfItem kind, string nameOfItem = null) where T : IItem
         {
+            var items = new List<T>();
             var response = await httpClient.GetAsync($"item/kind/{kind}?name={nameOfItem}");
-            response.EnsureSuccessStatusCode();
-
-            string json = await response.Content.ReadAsStringAsync();
-
-            JsonSerializerOptions options = new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } };
-            var items = JsonSerializer.Deserialize<List<T>>(json, options);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                string json = await response.Content.ReadAsStringAsync();
+                JsonSerializerOptions options = new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } };
+                items = JsonSerializer.Deserialize<List<T>>(json, options);
+            }
 
             return items;
         }

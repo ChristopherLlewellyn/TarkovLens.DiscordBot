@@ -11,5 +11,11 @@ namespace TarkovLensBot.Models.Items
     {
         [JsonPropertyName("location")]
         public string Location { get; set; }
+
+        [JsonPropertyName("usage")]
+        public List<string> Usage { get; set; }
+
+        [JsonPropertyName("maps")]
+        public List<string> Maps { get; set; }
     }
 }

@@ -36,10 +36,6 @@ namespace TarkovLensBot.Commands
             items = items.Where(x => x.Avg24hPrice > 0).ToList(); // Removes stuff like quest items, that don't have value
             var item = items.SearchForItem(nameString);
 
-            // Alternative items that closely matched the user's input
-            var alternatives = items.Where(x => x.Name != item.Name).DistinctBy(x => x.Name).ToList();
-            var alternativesString = alternatives.CreateAlternativesString();
-
             // Build and return response message
             var responseMsg = new DiscordEmbedBuilder();
 
@@ -51,11 +47,7 @@ namespace TarkovLensBot.Commands
                     ImageUrl = item.Img
                 };
                 responseMsg.AddField($"{item.Avg24hPrice} ₽", $"`{item.Name}`");
-
-                if (alternatives.IsNotNullOrEmpty())
-                {
-                    responseMsg.WithFooter($"Wrong item? Did you mean:{Environment.NewLine}{alternativesString}");
-                }
+                responseMsg.AddAlternativeItemsFooter(items, item);
 
                 await ctx.Channel.SendMessageAsync(embed: responseMsg).ConfigureAwait(false);
                 return;
@@ -152,7 +144,6 @@ namespace TarkovLensBot.Commands
                 Color = DiscordColor.Teal
             };
             msgEmbed.WithThumbnail(ammo.Img);
-
             msgEmbed.AddField("Damage", ammo.Damage.ToString(), true);
             msgEmbed.AddField("Penetration", ammo.Penetration.ToString(), true);
             msgEmbed.AddField("Armor Damage", ammo.ArmorDamage.ToString(), true);
@@ -160,7 +151,6 @@ namespace TarkovLensBot.Commands
             msgEmbed.AddField("Tracer?", ammo.Tracer == true ? "Yes" : "No", true);
             msgEmbed.AddField("Caliber", ammo.Caliber.ToString(), true);
             msgEmbed.AddField("Market Price (per round)", $"{ammo.Avg24hPrice} ₽");
-
             msgEmbed.AddAlternativeItemsFooter(ammunitions, ammo);
 
             await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
@@ -309,12 +299,6 @@ namespace TarkovLensBot.Commands
                     msgEmbed.AddField("Hydration", $"{medical.Effects.Hydration.Value}");
             }
 
-            /*if (medical.Effects.Bloodloss.IsNotNull())
-            {
-                if (medical.Effects.Bloodloss.Removes.IsNotNull() && medical.Effects.Bloodloss.Removes == true) 
-                    msgEmbed.AddField("Removes bloodloss?", "Yes");
-            }*/
-
             if (medical.Effects.LightBleeding.IsNotNull())
             {
                 if (medical.Effects.LightBleeding.Removes.IsNotNull() && medical.Effects.LightBleeding.Removes == true)
@@ -357,6 +341,50 @@ namespace TarkovLensBot.Commands
 
             msgEmbed.AddField("Market Price", $"{medical.Avg24hPrice} ₽");
             msgEmbed.AddAlternativeItemsFooter(medicals, medical);
+
+            await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+            return;
+        }
+
+        [Command("key")]
+        [Aliases("k")]
+        [Description("Gets information about a key. Example usage: \"!key factory\"")]
+        public async Task GetKeyInfo(CommandContext ctx, [Description("The name of a key")] params string[] name)
+        {
+            string nameString = name.ToStringWithSpaces().ToLower();
+            var keys = await _tarkovLensService.GetItemsByKind<Key>(Enums.KindOfItem.Key, nameString);
+            Key key = keys.SearchForItem(nameString);
+
+            if (key.IsNull())
+            {
+                var errEmbed = new DiscordEmbedBuilder
+                {
+                    Title = "Key not found",
+                    Description = nameString,
+                    Color = DiscordColor.Red
+                };
+
+                await ctx.Channel.SendMessageAsync(embed: errEmbed).ConfigureAwait(false);
+                return;
+            }
+
+            var msgEmbed = new DiscordEmbedBuilder
+            {
+                Title = key.Name,
+                Color = DiscordColor.Teal
+            };
+            msgEmbed.WithThumbnail(key.Img);
+
+            var mapsString = key.Maps.ToBulletPointString();
+            msgEmbed.AddField("Map(s)", mapsString.IsNotNullOrEmpty() ? mapsString : "-", true);
+            
+            msgEmbed.AddField("Rarity", key.Rarity.ToString(), true);
+            msgEmbed.AddField("Market Price", $"{key.Avg24hPrice} ₽", true);
+
+            var usageString = key.Usage.ToBulletPointString();
+            msgEmbed.AddField("Usage", usageString.IsNotNullOrEmpty() ? usageString : "-");
+            
+            msgEmbed.AddAlternativeItemsFooter(keys, key);
 
             await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
             return;

@@ -41,5 +41,29 @@ namespace TarkovLensBot.Helpers.ExtensionMethods
 
             return item;
         }
+
+        /// <summary>
+        /// Converts a list of strings to a string of bullet points, each on their own line.
+        /// </summary>
+        /// <param name="enumerable"></param>
+        /// <returns></returns>
+        public static string ToBulletPointString(this IEnumerable<string> enumerable)
+        {
+            var list = enumerable.ToList();
+            var bulletPointString = string.Empty;
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                bulletPointString += $"• {list[i]}";
+
+                bool isLastElement = i == list.Count - 1 ? true : false;
+                if (!isLastElement)
+                {
+                    bulletPointString += Environment.NewLine;
+                }
+            }
+
+            return bulletPointString;
+        }
     }
 }
