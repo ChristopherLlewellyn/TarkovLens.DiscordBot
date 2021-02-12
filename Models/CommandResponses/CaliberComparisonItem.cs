@@ -16,16 +16,16 @@ namespace TarkovLensBot.Models.CommandResponses
         public string Tracer { get; set; }
         public string MarketPrice { get; set; }
 
-        public CaliberComparisonItem(string name, string caliber, float damage, float penetration, float armorDamage, float velocity, bool tracer, int marketPrice)
+        public CaliberComparisonItem(string name, string caliber, float damage, float penetration, float armorDamage, string velocityFormatted, bool tracer, string marketPriceFormatted)
         {
             Name = name;
             Damage = damage.ToString();
             Penetration = penetration.ToString();
             ArmorDamage = armorDamage.ToString();
-            Velocity = $"{velocity.ToString()} m/s";
+            Velocity = velocityFormatted;
             Tracer = tracer == true ? "Yes" : "No";
             Caliber = caliber;
-            MarketPrice = $"{marketPrice.ToString()} ₽";
+            MarketPrice = marketPriceFormatted;
         }
     }
 }

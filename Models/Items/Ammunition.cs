@@ -22,6 +22,7 @@ namespace TarkovLensBot.Models.Items
 
         [JsonPropertyName("velocity")]
         public float Velocity { get; set; }
+        public string VelocityFormatted => $"{Velocity} m/s";
 
         [JsonPropertyName("ballisticCoef")]
         public float BallisticCoefficient { get; set; }

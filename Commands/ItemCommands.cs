@@ -148,7 +148,7 @@ namespace TarkovLensBot.Commands
             msgEmbed.AddField("Damage", ammo.Damage.ToString(), true);
             msgEmbed.AddField("Penetration", ammo.Penetration.ToString(), true);
             msgEmbed.AddField("Armor Damage", ammo.ArmorDamage.ToString(), true);
-            msgEmbed.AddField("Velocity", ammo.Velocity.ToString(), true);
+            msgEmbed.AddField("Velocity", ammo.VelocityFormatted, true);
             msgEmbed.AddField("Tracer?", ammo.Tracer == true ? "Yes" : "No", true);
             msgEmbed.AddField("Caliber", ammo.Caliber.ToString(), true);
             msgEmbed.AddField("Market Price (per round)", ammo.Avg24hPriceFormatted);
@@ -181,7 +181,7 @@ namespace TarkovLensBot.Commands
             var comparisonList = new List<CaliberComparisonItem>();
             foreach (var ammo in ammunitions)
             {
-                comparisonList.Add(new CaliberComparisonItem(ammo.ShortName, ammo.Caliber, ammo.Damage, ammo.Penetration, ammo.ArmorDamage, ammo.Velocity, ammo.Tracer, ammo.Avg24hPrice));
+                comparisonList.Add(new CaliberComparisonItem(ammo.ShortName, ammo.Caliber, ammo.Damage, ammo.Penetration, ammo.ArmorDamage, ammo.VelocityFormatted, ammo.Tracer, ammo.Avg24hPriceFormatted));
             }
             comparisonList = comparisonList.OrderBy(x => x.Name).ToList();
 
