@@ -60,5 +60,28 @@ namespace TarkovLensBot.Helpers.ExtensionMethods
 
             return str.ToUpper();
         }
+
+        public static bool IsTooShortForSearching(this string str, int minQueryLength)
+        {
+            return str.Length < minQueryLength ? true : false;
+        }
+
+        public static string AddMentions(this string str, IEnumerable<string> mentions, bool newLine)
+        {
+            if (mentions.IsNotNullOrEmpty())
+            {
+                str += newLine ? Environment.NewLine : "";
+                foreach (var mention in mentions)
+                {
+                    str += $"{mention} ";
+                }
+            }
+            return str;
+        }
+
+        public static string AddMention(this string str, string mention, bool newLine)
+        {
+            return AddMentions(str, new List<string> { mention }, newLine);
+        }
     }
 }

@@ -47,7 +47,7 @@ namespace TarkovLensBot.Helpers.ExtensionMethods
         /// </summary>
         /// <param name="enumerable"></param>
         /// <returns></returns>
-        public static string ToBulletPointString(this IEnumerable<string> enumerable)
+        public static string ToBulletPointString(this IEnumerable<string> enumerable, bool doubleNewLine = false)
         {
             var list = enumerable.ToList();
             var bulletPointString = string.Empty;
@@ -59,7 +59,7 @@ namespace TarkovLensBot.Helpers.ExtensionMethods
                 bool isLastElement = i == list.Count - 1 ? true : false;
                 if (!isLastElement)
                 {
-                    bulletPointString += Environment.NewLine;
+                    bulletPointString += doubleNewLine ? $"{Environment.NewLine}{Environment.NewLine}" : $"{Environment.NewLine}";
                 }
             }
 

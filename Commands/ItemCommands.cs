@@ -20,10 +20,12 @@ namespace TarkovLensBot.Commands
     public class ItemCommands : BaseCommandModule
     {
         private readonly TarkovLensService _tarkovLensService;
+        private readonly int _minQueryLength;
 
         public ItemCommands(TarkovLensService tarkovLensService)
         {
             _tarkovLensService = tarkovLensService;
+            _minQueryLength = 2;
         }
 
         [Command("price")]
@@ -32,6 +34,12 @@ namespace TarkovLensBot.Commands
         public async Task GetItemPrice(CommandContext ctx, [Description("The name of the item to find, e.g. salewa")] params string[] name)
         {
             var nameString = name.ToStringWithSpaces();
+            if (nameString.IsTooShortForSearching(_minQueryLength))
+            {
+                var tooShortResponse = new QueryTooShortResponse(nameString, _minQueryLength, ctx.User.Mention);
+                await ctx.Channel.SendMessageAsync(embed: tooShortResponse.Message).ConfigureAwait(false);
+                return;
+            }
 
             var items = await _tarkovLensService.GetItemsBySearch(nameString).ConfigureAwait(false);
             items = items.Where(x => x.Avg24hPrice > 0).ToList(); // Removes stuff like quest items, that don't have value
@@ -45,6 +53,7 @@ namespace TarkovLensBot.Commands
                 responseMsg = new DiscordEmbedBuilder 
                 { 
                     Color = DiscordColor.Orange,
+                    Title = item.Name,
                     ImageUrl = item.Img
                 };
                 responseMsg.AddField($"{item.Avg24hPriceFormatted}   |", "`Total`", true);
@@ -127,6 +136,13 @@ namespace TarkovLensBot.Commands
                 caliber = null;
             }
 
+            if (nameString.IsTooShortForSearching(_minQueryLength))
+            {
+                var tooShortResponse = new QueryTooShortResponse(nameString, _minQueryLength, ctx.User.Mention);
+                await ctx.Channel.SendMessageAsync(embed: tooShortResponse.Message).ConfigureAwait(false);
+                return;
+            }
+
             List<Ammunition> ammunitions = await _tarkovLensService.GetAmmunitions(nameOfItem: nameString, caliber: caliber);
             Ammunition ammo = ammunitions.SearchForItem(nameString);
 
@@ -149,13 +165,13 @@ namespace TarkovLensBot.Commands
                 Color = DiscordColor.Teal
             };
             msgEmbed.WithThumbnail(ammo.Img);
-            msgEmbed.AddField("Damage", ammo.Damage.ToString(), true);
-            msgEmbed.AddField("Penetration", ammo.Penetration.ToString(), true);
-            msgEmbed.AddField("Armor Damage", ammo.ArmorDamage.ToString(), true);
-            msgEmbed.AddField("Velocity", ammo.VelocityFormatted, true);
-            msgEmbed.AddField("Tracer?", ammo.Tracer == true ? "Yes" : "No", true);
-            msgEmbed.AddField("Caliber", ammo.Caliber.ToString(), true);
-            msgEmbed.AddField("Market Price (per round)", ammo.Avg24hPriceFormatted);
+            msgEmbed.AddField("Damage", $"`{ammo.Damage}`", true);
+            msgEmbed.AddField("Penetration", $"`{ammo.Penetration}`", true);
+            msgEmbed.AddField("Armor Damage", $"`{ammo.ArmorDamage}`", true);
+            msgEmbed.AddField("Velocity", $"`{ammo.VelocityFormatted}`", true);
+            msgEmbed.AddField("Tracer?", $"`{(ammo.Tracer == true ? "Yes" : "No")}`", true);
+            msgEmbed.AddField("Caliber", $"`{ammo.Caliber}`", true);
+            msgEmbed.AddField("Market Price (per round)", $"`{ammo.Avg24hPriceFormatted}`");
             msgEmbed.AddAlternativeItemsFooter(ammunitions, ammo);
 
             await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
@@ -167,6 +183,13 @@ namespace TarkovLensBot.Commands
         public async Task GetCaliberInfo(CommandContext ctx, [Description("The name of the caliber")] params string[] caliber)
         {
             string caliberString = caliber.ToStringWithSpaces();
+            if (caliberString.IsTooShortForSearching(_minQueryLength))
+            {
+                var tooShortResponse = new QueryTooShortResponse(caliberString, _minQueryLength, ctx.User.Mention);
+                await ctx.Channel.SendMessageAsync(embed: tooShortResponse.Message).ConfigureAwait(false);
+                return;
+            }
+
             List<Ammunition> ammunitions = await _tarkovLensService.GetAmmunitions(caliber: caliberString);
 
             if (ammunitions.IsNullOrEmpty())
@@ -202,6 +225,13 @@ namespace TarkovLensBot.Commands
         public async Task GetArmorInfo(CommandContext ctx, [Description("The name of the armor")] params string[] name)
         {
             string nameString = name.ToStringWithSpaces().ToLower();
+            if (nameString.IsTooShortForSearching(_minQueryLength))
+            {
+                var tooShortResponse = new QueryTooShortResponse(nameString, _minQueryLength, ctx.User.Mention);
+                await ctx.Channel.SendMessageAsync(embed: tooShortResponse.Message).ConfigureAwait(false);
+                return;
+            }
+
             List<Armor> armors = await _tarkovLensService.GetItemsByKind<Armor>(Enums.KindOfItem.Armor, nameString);
             var armor = armors.SearchForItem(nameString);
 
@@ -225,22 +255,22 @@ namespace TarkovLensBot.Commands
             };
             msgEmbed.WithThumbnail(armor.Img);
 
-            msgEmbed.AddField("Class", armor.ArmorProperties.Class.ToString(), true);
-            msgEmbed.AddField("Durability", armor.ArmorProperties.Durability.ToString(), true);
-            msgEmbed.AddField("Weight", $"{armor.Weight} kg", true);
-            msgEmbed.AddField("Ergonomics", $"{armor.Penalties.Ergonomics}%", true);
-            msgEmbed.AddField("Turn Speed", $"{armor.Penalties.Mouse}%", true);
-            msgEmbed.AddField("Movement Speed", $"{armor.Penalties.Speed}%", true);
+            msgEmbed.AddField("Class", $"`{armor.ArmorProperties.Class}`", true);
+            msgEmbed.AddField("Durability", $"`{armor.ArmorProperties.Durability}`", true);
+            msgEmbed.AddField("Weight", $"`{armor.Weight} kg`", true);
+            msgEmbed.AddField("Ergonomics", $"`{armor.Penalties.Ergonomics}%`", true);
+            msgEmbed.AddField("Turn Speed", $"`{armor.Penalties.Mouse}%`", true);
+            msgEmbed.AddField("Movement Speed", $"`{armor.Penalties.Speed}%`", true);
 
             var armorZonesString = string.Empty;
             foreach (var zone in armor.ArmorProperties.Zones)
             {
-                armorZonesString += $"• {zone.FirstLetterToUpper()}{Environment.NewLine}";
+                armorZonesString += $"`• {zone.FirstLetterToUpper()}`{Environment.NewLine}";
             }
             msgEmbed.AddField("Protects", armorZonesString, true);
 
-            msgEmbed.AddField("Material", armor.ArmorProperties.Material.Name.ToString().FirstLetterToUpper(), true);
-            msgEmbed.AddField("Market Price", armor.Avg24hPriceFormatted);
+            msgEmbed.AddField("Material", $"`{armor.ArmorProperties.Material.Name.ToString().FirstLetterToUpper()}`", true);
+            msgEmbed.AddField("Market Price", $"`{armor.Avg24hPriceFormatted}`");
 
             msgEmbed.AddAlternativeItemsFooter(armors, armor);
 
@@ -254,6 +284,13 @@ namespace TarkovLensBot.Commands
         public async Task GetMedicalInfo(CommandContext ctx, [Description("The name of the medical item")] params string[] name)
         {
             string nameString = name.ToStringWithSpaces().ToLower();
+            if (nameString.IsTooShortForSearching(_minQueryLength))
+            {
+                var tooShortResponse = new QueryTooShortResponse(nameString, _minQueryLength, ctx.User.Mention);
+                await ctx.Channel.SendMessageAsync(embed: tooShortResponse.Message).ConfigureAwait(false);
+                return;
+            }
+
             List<Medical> medicals = await _tarkovLensService.GetItemsByKind<Medical>(Enums.KindOfItem.Medical, nameString);
             var medical = medicals.SearchForItem(nameString);
 
@@ -279,72 +316,72 @@ namespace TarkovLensBot.Commands
 
             if (medical.Resources.IsNotNull() && medical.Resources != 0)
             {
-                msgEmbed.AddField("Max resources", medical.Resources.ToString());
+                msgEmbed.AddField("Max resources", $"`{medical.Resources}`");
             }
 
             if (medical.UseTime.IsNotNull())
             {
-                msgEmbed.AddField("Use time", $"{medical.UseTime.ToString()} sec");
+                msgEmbed.AddField("Use time", $"`{medical.UseTime} sec`");
             }
 
             if (medical.Effects.Health.IsNotNull())
             {
-                msgEmbed.AddField("Amount healed", $"{medical.Effects.Health.Value.ToString()}");
+                msgEmbed.AddField("Amount healed", $"`{medical.Effects.Health.Value}`");
             }
 
             if (medical.Effects.Energy.IsNotNull())
             {
                 if (medical.Effects.Energy.Value.IsNotNull())
-                    msgEmbed.AddField("Energy", $"{medical.Effects.Energy.Value}");
+                    msgEmbed.AddField("Energy", $"`{medical.Effects.Energy.Value}`");
             }
 
             if (medical.Effects.Hydration.IsNotNull())
             {
                 if (medical.Effects.Hydration.Value.IsNotNull())
-                    msgEmbed.AddField("Hydration", $"{medical.Effects.Hydration.Value}");
+                    msgEmbed.AddField("Hydration", $"`{medical.Effects.Hydration.Value}`");
             }
 
             if (medical.Effects.LightBleeding.IsNotNull())
             {
                 if (medical.Effects.LightBleeding.Removes.IsNotNull() && medical.Effects.LightBleeding.Removes == true)
-                    msgEmbed.AddField("Removes light bleeding?", "Yes");
+                    msgEmbed.AddField("Removes light bleeding?", "`Yes`");
             }
 
             if (medical.Effects.HeavyBleeding.IsNotNull())
             {
                 if (medical.Effects.HeavyBleeding.Removes.IsNotNull() && medical.Effects.HeavyBleeding.Removes == true)
-                    msgEmbed.AddField("Removes heavy bleeding?", "Yes");
+                    msgEmbed.AddField("Removes heavy bleeding?", "`Yes`");
             }
 
             if (medical.Effects.Fracture.IsNotNull())
             {
                 if (medical.Effects.Fracture.Removes.IsNotNull() && medical.Effects.Fracture.Removes == true)
-                    msgEmbed.AddField("Removes fractures?", "Yes");
+                    msgEmbed.AddField("Removes fractures?", "`Yes`");
             }
 
             if (medical.Effects.Pain.IsNotNull())
             {
                 if (medical.Effects.Pain.Removes.IsNotNull() && medical.Effects.Pain.Removes == true)
-                    msgEmbed.AddField("Removes pain?", $"Yes, for {medical.Effects.Pain.Duration} sec");
+                    msgEmbed.AddField("Removes pain?", $"`Yes`, for `{medical.Effects.Pain.Duration} sec`");
             }
 
             if (medical.Effects.Contusion.IsNotNull())
             {
                 if (medical.Effects.Contusion.Removes.IsNotNull() && medical.Effects.Contusion.Removes == true)
-                    msgEmbed.AddField("Removes contusion?", "Yes");
+                    msgEmbed.AddField("Removes contusion?", "`Yes`");
             }
 
             if (medical.Effects.Tremor.IsNotNull())
             {
                 if (medical.Effects.Tremor.Removes.IsNotNull() && medical.Effects.Tremor.Removes == false && medical.Effects.Tremor.Chance == 1)
                 {
-                    var tremorInfo = $"Yes, for {medical.Effects.Tremor.Duration} sec";
-                    tremorInfo += medical.Effects.Tremor.Delay > 0 ? $" after a {medical.Effects.Tremor.Delay} sec delay" : "";
+                    var tremorInfo = $"`Yes`, for `{medical.Effects.Tremor.Duration} sec`";
+                    tremorInfo += medical.Effects.Tremor.Delay > 0 ? $" after a `{medical.Effects.Tremor.Delay} sec` delay" : "";
                     msgEmbed.AddField("Causes tremor?", tremorInfo);
                 }
             }
 
-            msgEmbed.AddField("Market Price", medical.Avg24hPriceFormatted);
+            msgEmbed.AddField("Market Price", $"`{medical.Avg24hPriceFormatted}`");
             msgEmbed.AddAlternativeItemsFooter(medicals, medical);
 
             await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
@@ -357,6 +394,13 @@ namespace TarkovLensBot.Commands
         public async Task GetKeyInfo(CommandContext ctx, [Description("The name of a key")] params string[] name)
         {
             string nameString = name.ToStringWithSpaces().ToLower();
+            if (nameString.IsTooShortForSearching(_minQueryLength))
+            {
+                var tooShortResponse = new QueryTooShortResponse(nameString, _minQueryLength, ctx.User.Mention);
+                await ctx.Channel.SendMessageAsync(embed: tooShortResponse.Message).ConfigureAwait(false);
+                return;
+            }
+
             var keys = await _tarkovLensService.GetItemsByKind<Key>(Enums.KindOfItem.Key, nameString);
             Key key = keys.SearchForItem(nameString);
 
@@ -381,13 +425,13 @@ namespace TarkovLensBot.Commands
             msgEmbed.WithThumbnail(key.Img);
 
             var mapsString = key.Maps.ToBulletPointString();
-            msgEmbed.AddField("Map(s)", mapsString.IsNotNullOrEmpty() ? mapsString : "-", true);
-            
-            msgEmbed.AddField("Rarity", key.Rarity.ToString().Humanize(LetterCasing.Sentence), true);
-            msgEmbed.AddField("Market Price", key.Avg24hPriceFormatted, true);
+            msgEmbed.AddField("Map(s)", $"`{(mapsString.IsNotNullOrEmpty() ? mapsString : "-")}`", true);
 
-            var usageString = key.Usage.ToBulletPointString();
-            msgEmbed.AddField("Usage", usageString.IsNotNullOrEmpty() ? usageString : "-");
+            msgEmbed.AddField("Rarity", $"`{key.Rarity.ToString().Humanize(LetterCasing.Sentence)}`", true);
+            msgEmbed.AddField("Market Price", $"`{key.Avg24hPriceFormatted}`", true);
+
+            var usageString = key.Usage.ToBulletPointString(doubleNewLine: true);
+            msgEmbed.AddField("Usage", $"`{(usageString.IsNotNullOrEmpty() ? usageString : "-")}`");
             
             msgEmbed.AddAlternativeItemsFooter(keys, key);
 
