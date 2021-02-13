@@ -47,7 +47,11 @@ namespace TarkovLensBot.Commands
                     Color = DiscordColor.Orange,
                     ImageUrl = item.Img
                 };
-                responseMsg.AddField(item.Avg24hPriceFormatted, $"`{item.Name}`");
+                responseMsg.AddField($"{item.Avg24hPriceFormatted}   |", "`Total`", true);
+                if (item.Avg24hPricePerSlot.IsNotNull())
+                {
+                    responseMsg.AddField(item.Avg24hPricePerSlotFormatted, $"`Per slot (x{item.Grid.Height * item.Grid.Width})`", true);
+                }
                 responseMsg.AddAlternativeItemsFooter(items, item);
 
                 await ctx.Channel.SendMessageAsync(embed: responseMsg).ConfigureAwait(false);

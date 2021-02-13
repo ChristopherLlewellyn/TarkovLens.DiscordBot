@@ -38,7 +38,9 @@ namespace TarkovLensBot.Services
             if (response.IsSuccessStatusCode)
             {
                 string json = await response.Content.ReadAsStringAsync();
-                items = JsonSerializer.Deserialize<List<BaseItem>>(json);
+                JsonSerializerOptions options = new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } };
+                items = JsonSerializer.Deserialize<List<BaseItem>>(json, options);
+
             }
 
             return items;

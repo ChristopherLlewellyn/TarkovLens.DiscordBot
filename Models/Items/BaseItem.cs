@@ -59,6 +59,8 @@ namespace TarkovLensBot.Models.Items
         [JsonPropertyName("avg24hPrice")]
         public int Avg24hPrice { get; set; }
         public string Avg24hPriceFormatted => $"{Avg24hPrice.ToString("N0")} ₽";
+        public int? Avg24hPricePerSlot => Avg24hPrice / (Grid?.Height * Grid?.Width);
+        public string Avg24hPricePerSlotFormatted => $"{Avg24hPricePerSlot?.ToString("N0")} ₽";
 
         [JsonPropertyName("avg7daysPrice")]
         public int Avg7daysPrice { get; set; }
