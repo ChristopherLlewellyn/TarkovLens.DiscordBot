@@ -15,7 +15,7 @@
 | `!key`         | `!k`      | Get information about a key.                                                                       | `!key factory`                             |
 
 ## Screenshots
-<p align="center"><img src="https://i.ibb.co/1LJdK1g/tl-screenshot1.png" alt="PriceCommandScreenshot" width="25%" height="25%" /></p>
+<p align="center"><img src="https://i.ibb.co/zHk9pCX/tl-screenshot1.png" alt="PriceCommandScreenshot" width="25%" height="25%" /></p>
 <p align="center"><img src="https://i.ibb.co/sCZTJ6x/tl-screenshot2.png" alt="AmmoCommandScreenshot" width="30%" height="30%" /></p>
 <p align="center"><img src="https://i.ibb.co/0DygrdD/tl-screenshot3.png" alt="KeyCommandScreenshot" width="40%" height="40%" /></p>
 <p align="center"><img src="https://i.ibb.co/1bj5hNY/tl-screenshot4.png" alt="CompareammoCommandScreenshot" width="65%" height="65%" /></p>
