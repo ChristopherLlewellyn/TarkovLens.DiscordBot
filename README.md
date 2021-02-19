@@ -15,10 +15,16 @@
 | `!key`         | `!k`      | Get information about a key.                                                                       | `!key factory`                             |
 
 ## Screenshots
-<p align="center"><img src="https://i.ibb.co/zHk9pCX/tl-screenshot1.png" alt="PriceCommandScreenshot" width="25%" height="25%" /></p>
-<p align="center"><img src="https://i.ibb.co/sCZTJ6x/tl-screenshot2.png" alt="AmmoCommandScreenshot" width="30%" height="30%" /></p>
-<p align="center"><img src="https://i.ibb.co/0DygrdD/tl-screenshot3.png" alt="KeyCommandScreenshot" width="40%" height="40%" /></p>
+<p align="center"><img src="https://i.ibb.co/vDy0Lpk/tl-screenshot1.png" alt="PriceCommandScreenshot" width="25%" height="25%" /></p>
+<p align="center"><img src="https://i.ibb.co/bHxY67z/tl-screenshot2.png" alt="AmmoCommandScreenshot" width="30%" height="30%" /></p>
+<p align="center"><img src="https://i.ibb.co/LJdnfCP/tl-screenshot3.png" alt="KeyCommandScreenshot" width="40%" height="40%" /></p>
 <p align="center"><img src="https://i.ibb.co/1bj5hNY/tl-screenshot4.png" alt="CompareammoCommandScreenshot" width="65%" height="65%" /></p>
+
+## Thanks
+
+Big thanks to [Morphy2k](https://www.reddit.com/user/Morphy2k) for all the work he does - without him this project wouldn't exist.
+
+Check out his work here: [Tarkov-Database](https://tarkov-database.com/)
 
 ## Tools
 Built with C# .Net Core 3.1 and the DSharpPlus Nuget package.
