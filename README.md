@@ -13,6 +13,7 @@
 | `!armor`       | -         | Get information about an armor.                                                                    | `!armor zhuk-6a`                           |
 | `!medical`     | `!med`    | Get information about a medical item or stimulant.                                                 | `!medical salewa`                          |
 | `!key`         | `!k`      | Get information about a key.                                                                       | `!key factory`                             |
+| `!map`         | -         | Get a map for a location.                                                                          | `!map customs`                             |
 
 ## Screenshots
 <p align="center"><img src="https://i.ibb.co/vDy0Lpk/tl-screenshot1.png" alt="PriceCommandScreenshot" width="25%" height="25%" /></p>
