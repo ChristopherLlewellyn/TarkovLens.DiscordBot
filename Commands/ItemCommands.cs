@@ -13,6 +13,7 @@ using TarkovLensBot.Functions;
 using TarkovLensBot.Helpers.ExtensionMethods;
 using TarkovLensBot.Models.CommandResponses;
 using TarkovLensBot.Models.Items;
+using TarkovLensBot.Models.Other;
 using TarkovLensBot.Services;
 
 namespace TarkovLensBot.Commands
@@ -50,8 +51,8 @@ namespace TarkovLensBot.Commands
 
             if (item != null)
             {
-                responseMsg = new DiscordEmbedBuilder 
-                { 
+                responseMsg = new DiscordEmbedBuilder
+                {
                     Color = DiscordColor.Orange,
                     Title = item.Name,
                     ImageUrl = item.Img
@@ -66,7 +67,7 @@ namespace TarkovLensBot.Commands
                 await ctx.Channel.SendMessageAsync(embed: responseMsg).ConfigureAwait(false);
                 return;
             }
-            
+
             if (item.IsNull())
             {
                 responseMsg = new DiscordEmbedBuilder
@@ -125,7 +126,7 @@ namespace TarkovLensBot.Commands
         [Command("ammo")]
         [Description("Get information about an ammunition type. Example usage: \"!ammo 5.56 m995\"")]
         public async Task GetAmmoInfo(
-            CommandContext ctx, 
+            CommandContext ctx,
             [Description("The caliber of the ammo")] string caliber,
             [Description("The name of the ammo")] params string[] name)
         {
@@ -432,10 +433,67 @@ namespace TarkovLensBot.Commands
 
             var usageString = key.Usage.ToBulletPointString(doubleNewLine: true);
             msgEmbed.AddField("Usage", $"`{(usageString.IsNotNullOrEmpty() ? usageString : "-")}`");
-            
+
             msgEmbed.AddAlternativeItemsFooter(keys, key);
 
             await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+            return;
+        }
+
+        [Command("map")]
+        [Description("Get a map for a location. Example usage: \"!map customs\"")]
+        public async Task GetMap(CommandContext ctx, [Description("The name of the location")] params string[] name)
+        {
+            string locationString = name.ToStringWithSpaces().ToLower();
+            LocationWithMaps location = new LocationWithMaps(locationString);
+
+            if (location.Location.IsNull())
+            {
+                var errEmbed = new DiscordEmbedBuilder
+                {
+                    Title = "Location not found",
+                    Description = locationString,
+                    Color = DiscordColor.Red
+                };
+
+                await ctx.Channel.SendMessageAsync(embed: errEmbed).ConfigureAwait(false);
+                return;
+            }
+
+            var msgEmbed = new DiscordEmbedBuilder
+            {
+                Title = location.Location,
+                Color = DiscordColor.Teal
+            };
+
+            var mapGenieLink = $"[{location.MapGenieUrl}]({location.MapGenieUrl})";
+            var mapGenieTitle = "Interactive map";
+            if (location.Location == "Reserve")
+            {
+                mapGenieTitle += " (Reserve requires MapGenie pro)";
+            }
+
+            if (location.MapGenieUrl.IsNotNullOrEmpty())
+            {
+                msgEmbed.AddField(mapGenieTitle, mapGenieLink);
+            }
+            msgEmbed.WithImageUrl(location.MapUrls.First());
+
+            await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+
+            if (location.MapUrls.Count > 1)
+            {
+                for (var i = 1; i < location.MapUrls.Count; i++)
+                {
+                    msgEmbed = new DiscordEmbedBuilder
+                    {
+                        Title = $"{location.Location} - map {i + 1}",
+                        Color = DiscordColor.Teal,
+                        ImageUrl = location.MapUrls[i]
+                    };
+                    await ctx.Channel.SendMessageAsync(embed: msgEmbed).ConfigureAwait(false);
+                }
+            }
             return;
         }
     }
