@@ -76,7 +76,11 @@ namespace TarkovLensBot.Commands
                     Description = $"\"{nameString}\"",
                     Color = DiscordColor.Red
                 };
-                responseMsg.WithFooter("Note: search using the long name, e.g. instead of \"btc\" use \"bitcoin\"");
+                responseMsg.WithFooter(
+                    "This item couldn't be found on the flea market..." +
+                    Environment.NewLine +
+                    "Note: search using the long name, e.g. instead of \"btc\" use \"bitcoin\""
+                );
 
                 await ctx.Channel.SendMessageAsync(embed: responseMsg).ConfigureAwait(false);
                 return;
